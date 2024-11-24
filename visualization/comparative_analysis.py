@@ -19,13 +19,10 @@ from collections import defaultdict
 # Add the parent directory to system path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from maze_solving.algorithms import (
-    astar_search,
-    depth_first_search,
-    breadth_first_search,
-    greedy_best_first_search,
-    iterative_deepening_search
-)
+from maze_solving.algorithms.astar import astar_search
+from maze_solving.algorithms.gbfs import greedy_best_first_search
+from maze_solving.algorithms.ids import iterative_deepening_search
+from maze_solving.algorithms.ucs import uniform_cost_search
 
 class AlgorithmMetrics:
     def __init__(self, name, is_informed):
@@ -39,11 +36,10 @@ class AlgorithmMetrics:
 def run_analysis(maze_sizes=[5, 10, 15, 20], trials=3):
     """Run comparative analysis on different maze sizes."""
     algorithms = {
-        'A*': (astar_search, True),
+        'UCS': (uniform_cost_search, False),
+        'IDS': (iterative_deepening_search, False),
         'GBFS': (greedy_best_first_search, True),
-        'DFS': (depth_first_search, False),
-        'BFS': (breadth_first_search, False),
-        'IDS': (iterative_deepening_search, False)
+        'A*': (astar_search, True)
     }
     
     all_results = defaultdict(lambda: defaultdict(list))
