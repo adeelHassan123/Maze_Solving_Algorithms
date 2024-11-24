@@ -24,14 +24,18 @@ def greedy_best_first_search(maze_obj):
     start = (maze_obj.rows, maze_obj.cols)
     goal = (1, 1)
 
+    # Initialize tracking sets
+    maze_obj.expanded_nodes = set()  # Nodes we've processed
+    maze_obj.explored_cells = set()  # Cells we've seen
+    maze_obj.explored_cells.add(start)  # Start is immediately seen
+
     frontier = PriorityQueue()
     frontier.put((manhattan_distance(start, goal), start))
-    explored = set()
     came_from = {}
 
     while not frontier.empty():
         current = frontier.get()[1]
-        explored.add(current)
+        maze_obj.expanded_nodes.add(current)  # Mark as expanded when we process it
 
         if current == goal:
             break
@@ -47,12 +51,10 @@ def greedy_best_first_search(maze_obj):
                 elif direction == 'S':
                     neighbor = (current[0]+1, current[1])
 
-                if neighbor in explored:
-                    continue
-
-                frontier.put((manhattan_distance(neighbor, goal), neighbor))
-                explored.add(neighbor)
-                came_from[neighbor] = current
+                if neighbor not in maze_obj.explored_cells:
+                    maze_obj.explored_cells.add(neighbor)  # Mark as explored when we first see it
+                    frontier.put((manhattan_distance(neighbor, goal), neighbor))
+                    came_from[neighbor] = current
 
     # Reconstruct path
     path = {}
