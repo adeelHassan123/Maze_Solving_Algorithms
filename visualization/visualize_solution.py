@@ -11,20 +11,17 @@ import time
 # Add the parent directory to system path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from maze_solving.algorithms import (
-    astar_search,
-    depth_first_search,
-    breadth_first_search,
-    greedy_best_first_search,
-    iterative_deepening_search
-)
+from maze_solving.algorithms.astar import astar_search
+from maze_solving.algorithms.gbfs import greedy_best_first_search
+from maze_solving.algorithms.ids import iterative_deepening_search
+from maze_solving.algorithms.ucs import uniform_cost_search
 
 def visualize_solution(algorithm, size=10, loop_percent=20):
     """
     Visualize a maze solution using the specified algorithm.
     
     Args:
-        algorithm (str): Name of the algorithm to use ('astar', 'dfs', 'bfs', 'gbfs', 'ids')
+        algorithm (str): Name of the algorithm to use ('astar', 'ucs', 'gbfs', 'ids')
         size (int): Size of the maze (N x N)
         loop_percent (int): Percentage of loops in the maze (0-100)
     """
@@ -35,8 +32,7 @@ def visualize_solution(algorithm, size=10, loop_percent=20):
     # Map algorithm name to function
     algorithms = {
         'astar': astar_search,
-        'dfs': depth_first_search,
-        'bfs': breadth_first_search,
+        'ucs': uniform_cost_search,
         'gbfs': greedy_best_first_search,
         'ids': iterative_deepening_search
     }
@@ -49,30 +45,40 @@ def visualize_solution(algorithm, size=10, loop_percent=20):
     # Get the path using selected algorithm
     start_time = time.time()
     path = algorithms[algorithm](m)
-    execution_time = time.time() - start_time
+    end_time = time.time()
     
-    # Create an agent and visualize the path
-    a = agent(m, footprints=True, filled=True)
-    m.tracePath({a: path}, delay=100)
+    if not path:
+        print(f"No solution found using {algorithm}!")
+        return
     
-    # Add metrics as text labels
-    textLabel(m, 'Algorithm', algorithm.upper())
-    textLabel(m, 'Path Length', len(path))
-    textLabel(m, 'Time', f'{execution_time:.4f}s')
-    textLabel(m, 'Expanded Nodes', len(m.expanded_nodes) if hasattr(m, 'expanded_nodes') else 'N/A')
-    textLabel(m, 'Explored Cells', len(m.explored_cells) if hasattr(m, 'explored_cells') else 'N/A')
+    # Create agent and add path trace
+    a = agent(m, footprints=True, shape='arrow')
+    m.tracePath({a: path})
     
-    # Run the visualization
+    # Add metrics labels
+    l = textLabel(m, 'Algorithm', algorithm.upper())
+    l = textLabel(m, 'Path Length', len(path) + 1)
+    l = textLabel(m, 'Time', f'{(end_time-start_time):.4f}s')
+    l = textLabel(m, 'Expanded Nodes', len(m.expanded_nodes))
+    l = textLabel(m, 'Explored Cells', len(m.explored_cells))
+    
+    # Run visualization
     m.run()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Visualize maze solutions.')
-    parser.add_argument('algorithm', 
-                      help='Algorithm to use (astar, dfs, bfs, gbfs, ids)')
-    parser.add_argument('--size', type=int, default=10,
-                      help='Size of the maze (default: 10)')
-    parser.add_argument('--loops', type=int, default=20,
-                      help='Percentage of loops in maze (default: 20)')
+    parser.add_argument('--algorithm', 
+                      help='Algorithm to use (astar, ucs, gbfs, ids)',
+                      required=True,
+                      choices=['astar', 'ucs', 'gbfs', 'ids'])
+    parser.add_argument('--size',
+                      help='Size of the maze (N x N)',
+                      type=int,
+                      default=10)
+    parser.add_argument('--loops',
+                      help='Percentage of loops in maze (0-100)',
+                      type=int,
+                      default=20)
     
     args = parser.parse_args()
     visualize_solution(args.algorithm, args.size, args.loops)
